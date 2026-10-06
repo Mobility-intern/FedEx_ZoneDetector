@@ -1,0 +1,46 @@
+services:
+  # === BACKEND SERVICE ===
+  zonedetector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: zonedetector
+    container_name: zonedetector_container
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    command: ["sh", "entrypoint.sh"]
+    networks:
+      - app-network
+
+  # === PYTEST SERVICE ===
+  test:
+    image: zonedetector
+    container_name: zonedetector_test
+    depends_on:
+      - zonedetector
+    entrypoint: [""]
+    command: ["pytest", "tests", "-v"]
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+
+  # === FRONTEND SERVICE ===
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: react-frontend
+    container_name: react_frontend_container
+    ports:
+      - "3000:80"
+    depends_on:
+      - zonedetector
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
